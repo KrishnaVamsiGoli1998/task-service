@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
@@ -7,7 +8,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const db = new Pool({ user: 'postgres', password: 'Lovealll@7', host: 'localhost', port: 5432, database: 'taskdb' });
+const db = new Pool({
+	user: process.env.DB_USER,
+	password: process.env.DB_PASSWORD,
+	host: process.env.DB_HOST,
+	port: process.env.DB_PORT,
+	database: 'taskdb'
+});
 
 app.post('/tasks', async (req, res) => {
 	const { title, assignee, status } = req.body;
