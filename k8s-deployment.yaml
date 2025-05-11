@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task-service
+  template:
+    metadata:
+      labels:
+        app: task-service
+    spec:
+      containers:
+        - name: task-service
+          image: task-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 4001
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: db-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: db-password
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: db-host
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: db-port
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: db-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-service
+spec:
+  selector:
+    app: task-service
+  ports:
+    - port: 4001
+      targetPort: 4001
+  type: ClusterIP
+---
+# ConfigMap for database configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+data:
+  db-host: 'ep-round-recipe-a4egpnlm-pooler.us-east-1.aws.neon.tech'
+  db-port: '5432'
+  db-name: 'neondb'
+---
+# Secret for database credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials
+type: Opaque
+data:
+  db-user: bmVvbmRiX293bmVy # Base64 encoded "neondb_owner"
+  db-password: bnBnXzZhUG92aUZqc2M0ZQ== # Base64 encoded "npg_6aPoviFjsc4e"
